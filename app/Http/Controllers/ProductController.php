@@ -2,18 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Products\ShowRequest;
+use App\Http\Requests\Product\GetByIdRequest;
+
+use App\Http\Requests\Product\StoreRequest;
+use App\Http\Requests\Product\UpdateRequest;
 use App\Http\Resources\ProductCollectionResource;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\Request;
-use Spatie\FlareClient\Http\Exceptions\NotFound;
+use App\Repositories\Interfaces\ProductRepositoryInterface;
+use App\Services\Interfaces\ProductServiceInterface;
 
 class ProductController extends Controller
 {
+    protected $productRepository;
+
+    protected $productService;
+
+    public function __construct(
+        ProductServiceInterface $productService,
+        ProductRepositoryInterface $productRepository,
+
+    ) {
+        $this->productRepository = $productRepository;
+        $this->productService = $productService;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -21,65 +34,66 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return ProductCollectionResource::collection(Product::paginate());
+        return ProductCollectionResource::collection(
+            $this->productRepository->getPaginated()
+        );
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param \App\Http\Requests\Product\StoreRequest $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
-        echo __FUNCTION__;
+        return (new ProductCollectionResource(
+            $this->productService->store($request->validated())
+        ))->additional(['message' => __('notifications.store.success')])
+            ->response()
+            ->setStatusCode(\Illuminate\Http\Response::HTTP_CREATED);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param $id
+     * @param \App\Http\Requests\Product\GetByIdRequest $request
      * @return \App\Http\Resources\ProductResource|\Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(GetByIdRequest $request)
     {
-        return new ProductResource($this->srvShow($id));
-    }
-
-    public function srvShow($id)
-    {
-        try{
-            return    Product::with(['categories'])->findOrFail($id);
-        } catch (\Exception $e){
-            if($e instanceof ModelNotFoundException){
-                throw new HttpResponseException(response()->json(['error' => __('exception.not_found')], 404));
-            }
-
-            //todo logging implements
-            throw new HttpResponseException(response()->json(['error' => __('error.internal_server_error')], 422));
-        }
+        return new ProductResource(
+            $this->productRepository->getWithRelations($request->id)
+        );
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Models\Product $product
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Product $product)
+    public function update(UpdateRequest $request, int $product)
     {
-        echo __FUNCTION__;
+        return (new ProductResource(
+            $this->productService->update($request->validated(), $product)
+        ))->additional(['message' => __('notifications.update.success')])
+            ->response()
+            ->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
+     * @param \App\Models\Product $product
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Product $product)
+    public function destroy(GetByIdRequest $request)
     {
-        echo __FUNCTION__;
+        $this->productService->delete($request->id);
+        return response()
+            ->json(['message' => trans('notifications.destroy.success'),])
+            ->setStatusCode(\Illuminate\Http\Response::HTTP_ACCEPTED);
     }
 }
