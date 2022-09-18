@@ -58,15 +58,11 @@ class ProductService implements Interfaces\ProductServiceInterface
 
     public function delete($id)
     {
-        $product = $this->productRepository->find($id);
-        $product->categories()->detach();
-        $product->delete();
         DB::beginTransaction();
         try {
-
-
-            //todo detach categories
-            //todo delete by id
+            $product = $this->productRepository->find($id);
+            $product->categories()->detach();
+            $product->delete();
         } catch (\Exception $exception) {
             DB::rollBack();
             throw $exception;
