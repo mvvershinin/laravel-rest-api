@@ -20,7 +20,7 @@ class ProductService implements Interfaces\ProductServiceInterface
         DB::beginTransaction();
         try {
             $product = $this->productRepository->create($input);
-            $this->productRepository->attachCategories($product, $input['categories_ids']);
+            $this->productRepository->attachRelation($product, 'categories', $input['categories_ids']);
         } catch (\Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -40,8 +40,9 @@ class ProductService implements Interfaces\ProductServiceInterface
             );
             if (isset($input['categories_ids'])){
                 $product = $this->productRepository->find($id);
-                $this->productRepository->syncCategories(
+                $this->productRepository->syncRelation(
                     $product,
+                    'categories',
                     $input['categories_ids']
                 );
             }

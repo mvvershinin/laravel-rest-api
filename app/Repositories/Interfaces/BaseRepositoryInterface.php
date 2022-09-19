@@ -23,6 +23,20 @@ interface BaseRepositoryInterface
     public function getWithRelations($id);
 
     /**
+     * @param $product
+     * @param $relation
+     * @param array $categories
+     */
+    public function attachRelation(&$product, string $relation, array $categories): void;
+
+    /**
+     * @param $product
+     * @param $relation
+     * @param array $categories
+     */
+    public function syncRelation(&$product, string $relation, array $categories): void;
+
+    /**
      * @return mixed
      */
     public function getPaginated();
