@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Product;
 
+use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -33,6 +34,7 @@ class UpdateRequest extends FormRequest
     public function rules()
     {
         $productRepository = app(ProductRepositoryInterface::class);
+        $categoriesRepository = app(CategoryRepositoryInterface::class);
 
         return [
             'id' => 'integer|required|exists:'.$productRepository->getClassName().',id',
@@ -40,8 +42,7 @@ class UpdateRequest extends FormRequest
             'title' => 'string|min:5|max:244',
             'price' => 'numeric|min:1|max:20000',
             'categories_ids' => 'array',
-            //todo get table from repository
-            'categories_ids.*' => 'integer|exists:categories,id'
+            'categories_ids.*' => 'integer|exists:'.$categoriesRepository->getClassName().',id'
         ];
     }
 }
