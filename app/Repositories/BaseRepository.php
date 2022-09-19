@@ -5,7 +5,7 @@ namespace App\Repositories;
 use Illuminate\Database\Eloquent\Model;
 use App\Repositories\Interfaces\BaseRepositoryInterface;
 
-class BaseRepository implements BaseRepositoryInterface
+abstract class BaseRepository implements BaseRepositoryInterface
 {
     /**
      * @var Model
@@ -80,18 +80,38 @@ class BaseRepository implements BaseRepositoryInterface
      * @param $id
      * @return Model
      */
-    public function find($id)
+    public function find($id): Model
     {
         return $this->model->find($id);
     }
 
     /**
      * @param $id
-     * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model|mixed|null
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getWithRelations($id)
     {
         return $this->model->with($this->relations)->findOrFail($id);
+    }
+
+    /**
+     * @param $product
+     * @param $relation
+     * @param array $categories
+     */
+    public function attachRelation(&$product, string $relation, array $categories): void
+    {
+        $product->$relation()->attach($categories);
+    }
+
+    /**
+     * @param $product
+     * @param $relation
+     * @param array $categories
+     */
+    public function syncRelation(&$product, string $relation, array $categories): void
+    {
+        $product->$relation()->sync($categories);
     }
 
     /**

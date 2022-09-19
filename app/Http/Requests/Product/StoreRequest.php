@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Product;
 
+use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRequest extends FormRequest
@@ -23,13 +24,14 @@ class StoreRequest extends FormRequest
      */
     public function rules()
     {
+        $categoriesRepository = app(CategoryRepositoryInterface::class);
+
         return [
             'eid' => 'integer|required',
             'title' => 'string|min:5|max:244',
             'price' => 'numeric|min:1|max:20000',
             'categories_ids' => 'required|array',
-            //todo get table from repository
-            'categories_ids.*' => 'integer|exists:categories,id'
+            'categories_ids.*' => 'integer|exists:'.$categoriesRepository->getClassName().',id'
         ];
     }
 }

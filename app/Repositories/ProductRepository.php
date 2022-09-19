@@ -10,15 +10,4 @@ class ProductRepository extends BaseRepository implements Interfaces\ProductRepo
     {
         parent::__construct($model, ['categories']);
     }
-
-    public function attachCategories(&$product, array $categories)
-    {
-        $product->categories()->attach($categories);
-        return $product->save();
-    }
-
-    public function syncCategories(&$product, array $categories)
-    {
-        $product->categories()->sync($categories);
-    }
 }
