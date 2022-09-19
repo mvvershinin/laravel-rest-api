@@ -20,7 +20,9 @@ class ProductService implements Interfaces\ProductServiceInterface
         DB::beginTransaction();
         try {
             $product = $this->productRepository->create($input);
-            $this->productRepository->attachRelation($product, 'categories', $input['categories_ids']);
+            if (isset($input['categories_ids'])) {
+                $this->productRepository->attachRelation($product, 'categories', $input['categories_ids']);
+            }
         } catch (\Exception $exception) {
             DB::rollBack();
             throw $exception;
