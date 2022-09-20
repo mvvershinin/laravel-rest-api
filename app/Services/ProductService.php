@@ -48,8 +48,8 @@ class ProductService implements Interfaces\ProductServiceInterface
                     $input['categories_ids']
                 );
             }
-
             $product = $this->productRepository->getWithRelations($id);
+
         } catch (\Exception $exception) {
             DB::rollBack();
             throw $exception;
