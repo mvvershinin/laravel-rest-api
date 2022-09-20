@@ -18,7 +18,7 @@ jobs:
           coverage: none
 
       - name: Install Composer dependencies
-        run: composer install
+        run: composer install --prefer-dist --no-interaction
 
       - name: Copy environment file
         run: cp .env.example .env
@@ -27,4 +27,4 @@ jobs:
         run: php artisan key:generate
 
       - name: Execute tests
-        run: php artisan test
+        run: vendor/bin/phpunit
