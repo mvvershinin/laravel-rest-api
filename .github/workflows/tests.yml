@@ -1,90 +1,85 @@
-# GitHub Action for Laravel with PostgreSQL and Redis
-name: Testing Laravel with PostgreSQL
-on: [push, pull_request]
-jobs:
-  laravel:
-    name: Laravel (PHP ${{ matrix.php-versions }})
-    runs-on: ubuntu-latest
-    env:
-      BROADCAST_DRIVER: log
-      CACHE_DRIVER: redis
-      QUEUE_CONNECTION: redis
-      SESSION_DRIVER: redis
-      DB_CONNECTION: pgsql
-      DB_HOST: localhost
-      DB_PASSWORD: postgres
-      DB_USERNAME: postgres
-      DB_DATABASE: postgres
 
-    # Docs: https://docs.github.com/en/actions/using-containerized-services
+
+name:  PostgreSQL Tests
+
+on: [push, pull_request]
+
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+    # Service container Postgresql postgresql
     services:
+      # Label used to access the service container
       postgres:
+        # Docker Hub image (also with version)
         image: postgres:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_DB:  db_test_laravel
+        ## map the "external" 55432 port with the "internal" 5432
         ports:
-          - 5432/tcp
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
-
-      redis:
-        image: redis
-        ports:
-          - 6379/tcp
-        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+          - 55432:5432
+        # Set health checks to wait until postgresql database has started (it takes some seconds to start)
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.4', '8.0', '8.1']
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+        operating-system: [ubuntu-latest]
+        php-versions: [ '8.1' ]
+        dependency-stability: [ prefer-stable ]
 
-      # Docs: https://github.com/shivammathur/setup-php
-      - name: Setup PHP
+        laravel: [ '9.*' ]
+        include:
+          - laravel:  9.*
+            testbench: 7.*
+
+    name: P${{ matrix.php-versions }} - L${{ matrix.laravel }} - ${{ matrix.dependency-stability }} - ${{ matrix.operating-system}}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install PHP versions
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: mbstring, dom, fileinfo, pgsql
-          coverage: xdebug
-
-      # Local PostgreSQL service in GitHub hosted environments is disabled by default.
-      # If you are using it instead of service containers, make sure you start it.
-      # - name: Start postgresql service
-      #   run: sudo systemctl start postgresql.service
-
-      - name: Get composer cache directory
+      - name: Get Composer Cache Directory 2
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache composer dependencies
-        uses: actions/cache@v3
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - uses: actions/cache@v2
+        id: actions-cache
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          # Use composer.json for key, if composer.lock is not committed.
-          # key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install Composer dependencies
-        run: composer install --no-progress --prefer-dist --optimize-autoloader
-
-      - name: Prepare the application
+          restore-keys: |
+            ${{ runner.os }}-composer-
+      - name: Cache PHP dependencies
+        uses: actions/cache@v2
+        id: vendor-cache
+        with:
+          path: vendor
+          key: ${{ runner.OS }}-build-${{ hashFiles('**/composer.lock') }}
+      - name: Install Laravel Dependencies
         run: |
-          php -r "file_exists('.env') || copy('.env.example', '.env');"
-          php artisan key:generate
-      - name: Clear Config
-        run: php artisan config:clear
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --${{ matrix.dependency-stability }} --prefer-dist --no-interaction --no-suggest
+      - name: Show dir
+        run: pwd
+      - name: PHP Version
+        run: php --version
 
-      - name: Run Migration
-        run: php artisan migrate -v
+      # Code quality
+      - name: Execute tests (Unit and Feature tests) via PHPUnit
+        # Set environment
         env:
-          DB_PORT: ${{ job.services.postgres.ports[5432] }}
-          REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
+          DB_CONNECTION: pgsql
+          DB_DATABASE: db_test_laravel
+          DB_PORT: 55432
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
 
-      - name: Test with phpunit
-        run: vendor/bin/phpunit --coverage-text
-        env:
-          DB_PORT: ${{ job.services.postgres.ports[5432] }}
-          REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
+        run: vendor/bin/phpunit --testdox
