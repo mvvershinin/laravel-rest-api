@@ -52,7 +52,7 @@ class ProductsTest extends TestCase
             ->assertStatus(201);
     }
 
-    public function test_product_create_fail_reuired_values()
+    public function test_product_create_fail_required_values()
     {
         foreach (ProductStructures::PRODUCT_KEYS as $key){
             $invalid_product = ProductStructures::getProduct();
