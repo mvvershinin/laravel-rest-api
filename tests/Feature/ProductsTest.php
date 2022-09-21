@@ -11,11 +11,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Structures\ProductStructures;
 use Tests\TestCase;
 
+use function Sodium\randombytes_random16;
+
 class ProductsTest extends TestCase
 {
     use RefreshDatabase;
-
-    const CATEGORIES_COUNT = 3;
 
     const API = '/api';
 
@@ -24,33 +24,62 @@ class ProductsTest extends TestCase
         $this->seed(CategorySeeder::class);
         $this->seed(ProductSeeder::class);
 
-        $response = $this->withHeaders(['Accept' => 'application/json'])->get(self::API.'/products');
-
-        $response
+        $this->withHeaders(['Accept' => 'application/json'])->get(self::API.'/products')
             ->assertJsonStructure(ProductStructures::PRODUCTS)
             ->assertStatus(200);
     }
 
-    public function test_products_get_by_id()
+    public function test_product_get_by_id()
     {
-        $categories = Category::factory()->count(self::CATEGORIES_COUNT)->create();
-        $p = Product::factory()->create();
-        $p->categories()->attach($categories->pluck('id')->toArray());
-
-
-        $response = $this->withHeaders(['Accept' => 'application/json'])->get(self::API.'/products/'.$p->id);
-
-        $response
+        $this->withHeaders(['Accept' => 'application/json'])
+            ->get(self::API.'/products/'. ProductStructures::getProductId())
             ->assertJsonStructure(ProductStructures::PRODUCT)
             ->assertStatus(200);
     }
 
-    public function test_products_get_by_id_fail()
+    public function test_product_get_by_id_fail()
     {
-        $response = $this->withHeaders(['Accept' => 'application/json'])->get(self::API.'/products/1a');
-
-        $response
+        $this->withHeaders(['Accept' => 'application/json'])->get(self::API.'/products/1a')
             ->assertJsonStructure(ProductStructures::PRODUCT_ERROR)
             ->assertStatus(422);
+    }
+
+    public function test_product_create()
+    {
+        $this->withHeaders(['Accept' => 'application/json'])
+            ->post(self::API.'/products', ProductStructures::getProduct())
+            ->assertJsonStructure(ProductStructures::PRODUCTS_STORED)
+            ->assertStatus(201);
+    }
+
+    public function test_product_create_fail_reuired_values()
+    {
+        foreach (ProductStructures::PRODUCT_KEYS as $key){
+            $invalid_product = ProductStructures::getProduct();
+            unset($invalid_product[$key]);
+
+            $this->withHeaders(['Accept' => 'application/json'])
+                ->post(self::API.'/products', $invalid_product)
+                ->assertJsonStructure(ProductStructures::PRODUCT_ERROR)
+                ->assertStatus(422);
+        }
+    }
+
+    public function test_product_create_fail_validation()
+    {
+        foreach (ProductStructures::PRODUCT_ERROR_VALUES as $key => $values){
+            foreach ($values as $value){
+            $invalid_product = ProductStructures::getProduct();
+
+            $invalid_product[$key] = $value;
+
+            $r = $this->withHeaders(['Accept' => 'application/json'])
+                ->post(self::API.'/products', $invalid_product);
+
+                $r->assertJsonStructure(ProductStructures::PRODUCT_ERROR)
+                ->assertStatus(422);
+
+        }
+        }
     }
 }

@@ -27,7 +27,7 @@ class StoreRequest extends FormRequest
         $categoriesRepository = app(CategoryRepositoryInterface::class);
 
         return [
-            'eid' => 'integer|required',
+            'eid' => 'integer|required|min:1',
             'title' => 'string|required|min:5|max:244',
             'price' => 'numeric|required|min:1|max:20000',
             'categories_ids' => 'required|array',

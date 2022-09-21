@@ -15,13 +15,13 @@ return new class extends Migration
     public function up()
     {
 
-        Schema::create('products', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->float('price');
-            $table->integer('eid')->nullable();
-            $table->timestamps();
-        });
+        $query = '
+
+        ALTER TABLE products ADD CONSTRAINT products_price_check CHECK (price > 0);
+        ALTER TABLE products ADD CONSTRAINT products_eid_check CHECK (eid > 0);
+        ';
+        DB::unprepared($query);
+
     }
 
     /**
@@ -31,6 +31,12 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('products');
+
+        $query = '
+        ALTER TABLE products DROP CONSTRAINT products_price_check;
+        ALTER TABLE products DROP CONSTRAINT products_eid_check;
+        ';
+        DB::unprepared($query);
+
     }
 };
