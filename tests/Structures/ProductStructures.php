@@ -2,8 +2,8 @@
 
 namespace Tests\Structures;
 
-use App\Models\Category;
-use App\Models\Product;
+use App\Repositories\CategoryRepository;
+use App\Repositories\ProductRepository;
 
 class ProductStructures
 {
@@ -54,7 +54,8 @@ class ProductStructures
 
     public static function getProduct()
     {
-        $categories = Category::factory()->create();
+        $categoryRepository = \App::make(CategoryRepository::class);
+        $categories = $categoryRepository->getInstance()::factory()->create();
 
         return [
             'eid' => 123,
@@ -66,8 +67,12 @@ class ProductStructures
 
     public static function getProductId()
     {
-        $categories = Category::factory()->count(self::CATEGORIES_COUNT)->create();
-        $product = Product::factory()->create();
+        $categoryRepository = \App::make(CategoryRepository::class);
+        $categories = $categoryRepository->getInstance()::factory()->count(self::CATEGORIES_COUNT)->create();
+
+        $productRepository = \App::make(ProductRepository::class);
+        $product = $productRepository->getInstance()::factory()->create();
+
         $product->categories()->attach($categories->pluck('id')->toArray());
 
         return $product->id;
