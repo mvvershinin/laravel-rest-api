@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Dto\ProductDto;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -36,10 +35,6 @@ class ProductService implements Interfaces\ProductServiceInterface
     {
         DB::beginTransaction();
         try {
-            $this->productRepository->update(
-                (array)ProductDto::get($input),
-                ['id' => $id]
-            );
             if (isset($input['categories_ids'])){
                 $product = $this->productRepository->find($id);
                 $this->productRepository->syncRelation(
@@ -47,7 +42,14 @@ class ProductService implements Interfaces\ProductServiceInterface
                     'categories',
                     $input['categories_ids']
                 );
+                unset($input['categories_ids']);
             }
+
+            $this->productRepository->update(
+                $input,
+                ['id' => $id]
+            );
+
             $product = $this->productRepository->getWithRelations($id);
 
         } catch (\Exception $exception) {

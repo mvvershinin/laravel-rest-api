@@ -27,11 +27,11 @@ class StoreRequest extends FormRequest
         $categoriesRepository = app(CategoryRepositoryInterface::class);
 
         return [
-            'eid' => 'integer|required',
-            'title' => 'string|min:5|max:244',
-            'price' => 'numeric|min:1|max:20000',
+            'eid' => 'integer|required|min:1',
+            'title' => 'string|required|min:5|max:244',
+            'price' => 'numeric|required|min:1|max:20000',
             'categories_ids' => 'required|array',
-            'categories_ids.*' => 'integer|exists:'.$categoriesRepository->getClassName().',id'
+            'categories_ids.*' => 'integer|required|exists:'.$categoriesRepository->getClassName().',id'
         ];
     }
 }
