@@ -20,7 +20,7 @@ class ProductFactory extends Factory
         return [
             'title' => fake()->name().' '.Str::random(10),
             'price' => fake()->randomFloat(2,1, 20000),
-            'eid' => fake()->unique()->randomNumber(),
+            'eid' => fake()->randomFloat(0,1, 40000),
         ];
     }
 }
