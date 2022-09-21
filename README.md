@@ -2,8 +2,16 @@
 
 Simple REST API based on Laravel v9.
 
-## Install via composer
+
+## Install
+copy <b>.env.example</b> to <b>.env</b> and set your variables
+
     composer install
+
+    php artisan key:generate
+
+    php artisan storage:link
+
 
 ### Running unit tests
 
