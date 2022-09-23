@@ -16,7 +16,7 @@ class ProductsTest extends TestCase
 
     const API = '/api';
 
-    /** @test */
+
     public function test_get_list()
     {
         $this->seed(CategorySeeder::class);
@@ -27,7 +27,7 @@ class ProductsTest extends TestCase
             )->assertStatus(200);
     }
 
-    /** @test */
+
     public function test_get_by_id()
     {
         $this->withHeaders(['Accept' => 'application/json'])->get(
@@ -35,7 +35,7 @@ class ProductsTest extends TestCase
             )->assertJsonStructure(ProductStructures::PRODUCT)->assertStatus(200);
     }
 
-    /** @test */
+
     public function test_get_by_id_fail()
     {
         $this->withHeaders(['Accept' => 'application/json'])->get(self::API.'/products/1a')->assertJsonStructure(
@@ -43,7 +43,7 @@ class ProductsTest extends TestCase
             )->assertStatus(422);
     }
 
-    /** @test */
+
     public function test_create()
     {
         $app = $this->CreateApplication();
@@ -53,7 +53,7 @@ class ProductsTest extends TestCase
             )->assertJsonStructure(ProductStructures::PRODUCTS_STORED)->assertStatus(201);
     }
 
-    /** @test */
+
     public function test_create_fail_required_values()
     {
         $app = $this->CreateApplication();
@@ -68,7 +68,7 @@ class ProductsTest extends TestCase
         }
     }
 
-    /** @test */
+
     public function test_create_fail_validation()
     {
         $app = $this->CreateApplication();
@@ -88,7 +88,7 @@ class ProductsTest extends TestCase
         }
     }
 
-    /** @test */
+
     public function test_delete_by_id()
     {
         $this->withHeaders(['Accept' => 'application/json'])->delete(
@@ -96,11 +96,12 @@ class ProductsTest extends TestCase
             )->assertJsonStructure(['message'])->assertStatus(202);
     }
 
-    /** @test */
+
     public function test_delete_by_id_fail()
     {
         $this->withHeaders(['Accept' => 'application/json'])->delete(
             self::API.'/products/abc'
         )->assertJsonStructure(ProductStructures::PRODUCT_ERROR)->assertStatus(422);
     }
+
 }
