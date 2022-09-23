@@ -8,15 +8,14 @@ use App\Http\Requests\Product\StoreRequest;
 use App\Http\Requests\Product\UpdateRequest;
 use App\Http\Resources\ProductCollectionResource;
 use App\Http\Resources\ProductResource;
-use App\Models\Product;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 use App\Services\Interfaces\ProductServiceInterface;
 
 class ProductController extends Controller
 {
-    protected $productRepository;
+    protected ProductRepositoryInterface $productRepository;
 
-    protected $productService;
+    protected ProductServiceInterface $productService;
 
     public function __construct(
         ProductServiceInterface $productService,
@@ -70,8 +69,8 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Product $product
+     * @param \App\Http\Requests\Product\UpdateRequest $request
+     * @param int $product
      * @return \Illuminate\Http\JsonResponse
      */
     public function update(UpdateRequest $request, int $product)
@@ -86,7 +85,7 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param \App\Models\Product $product
+     * @param \App\Http\Requests\Product\GetByIdRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(GetByIdRequest $request)
