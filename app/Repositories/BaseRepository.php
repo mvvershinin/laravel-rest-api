@@ -10,16 +10,17 @@ abstract class BaseRepository implements BaseRepositoryInterface
     /**
      * @var Model
      */
-    protected $model;
+    protected Model $model;
 
-    protected $relations = [];
+    protected array $relations = [];
 
     /**
      * BaseRepository constructor.
      *
      * @param Model $model
+     * @param array $relations
      */
-    public function __construct(Model $model, $relations = [])
+    public function __construct(Model $model, $relations)
     {
         $this->model = $model;
         $this->relations = $relations;
@@ -86,32 +87,50 @@ abstract class BaseRepository implements BaseRepositoryInterface
     }
 
     /**
+     * @return mixed
+     */
+    abstract public function getDefaultRelation();
+
+    /**
+     * @return array
+     */
+    public function getRelations(): array
+    {
+        return $this->relations;
+    }
+
+    /**
      * @param $id
+     * @param array $relations
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getWithRelations($id)
+    public function getWithRelations($id, array $relations = null)
     {
-        return $this->model->with($this->relations)->findOrFail($id);
+        return $this->model
+            ->with($relations ?: $this->getRelations())
+            ->findOrFail($id);
     }
 
     /**
      * @param $product
      * @param $relation
-     * @param array $categories
+     * @param array $relation_ids
      */
-    public function attachRelation(&$product, string $relation, array $categories): void
+    public function attachRelation(&$product, array $relation_ids, $relation = null): void
     {
-        $product->$relation()->attach($categories);
+        $relation = $relation ?: $this->getDefaultRelation();
+        $product->$relation()->attach($relation_ids);
     }
 
     /**
      * @param $product
      * @param $relation
-     * @param array $categories
+     * @param array $relation_ids
      */
-    public function syncRelation(&$product, string $relation, array $categories): void
+    public function syncRelation(&$product, array $relation_ids, $relation = null): void
     {
-        $product->$relation()->sync($categories);
+        $relation = $relation ?: $this->getDefaultRelation();
+        $product->$relation()->sync($relation_ids);
     }
 
     /**

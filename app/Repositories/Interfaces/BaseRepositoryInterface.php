@@ -17,24 +17,30 @@ interface BaseRepositoryInterface
     public function find($id);
 
     /**
+     * @return array
+     */
+    public function getRelations();
+
+    /**
      * @param $id
-     * @return mixed
+     * @param $relations
      */
-    public function getWithRelations($id);
+    public function getWithRelations($id, array $relations = null);
 
     /**
      * @param $product
      * @param $relation
-     * @param array $categories
+     * @param array $relation_ids
      */
-    public function attachRelation(&$product, string $relation, array $categories): void;
+    public function attachRelation(&$product, array $relation_ids, $relation = null);
+
 
     /**
      * @param $product
      * @param $relation
-     * @param array $categories
+     * @param array $relation_ids
      */
-    public function syncRelation(&$product, string $relation, array $categories): void;
+    public function syncRelation(&$product, array $relation_ids, $relation = null);
 
     /**
      * @return mixed

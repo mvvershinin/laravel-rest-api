@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class ProductService implements Interfaces\ProductServiceInterface
 {
-    protected $productRepository;
+    protected ProductRepositoryInterface $productRepository;
 
     public function __construct(ProductRepositoryInterface $productRepository)
     {
@@ -19,9 +19,7 @@ class ProductService implements Interfaces\ProductServiceInterface
         DB::beginTransaction();
         try {
             $product = $this->productRepository->create($input);
-            if (isset($input['categories_ids'])) {
-                $this->productRepository->attachRelation($product, 'categories', $input['categories_ids']);
-            }
+            $this->storeRelations($product, $input);
         } catch (\Exception $exception) {
             DB::rollBack();
             throw $exception;
@@ -35,20 +33,9 @@ class ProductService implements Interfaces\ProductServiceInterface
     {
         DB::beginTransaction();
         try {
-            if (isset($input['categories_ids'])){
-                $product = $this->productRepository->find($id);
-                $this->productRepository->syncRelation(
-                    $product,
-                    'categories',
-                    $input['categories_ids']
-                );
-                unset($input['categories_ids']);
-            }
-
-            $this->productRepository->update(
-                $input,
-                ['id' => $id]
-            );
+            $product = $this->productRepository->find($id);
+            $this->storeRelations($product, $input, 'syncRelation');
+            $this->productRepository->update($input, ['id' => $id]);
 
             $product = $this->productRepository->getWithRelations($id);
 
@@ -66,14 +53,26 @@ class ProductService implements Interfaces\ProductServiceInterface
         DB::beginTransaction();
         try {
             $product = $this->productRepository->find($id);
-            $product->categories()->detach();
+            foreach ($this->productRepository->getRelations() as $relation) {
+                $product->$relation()->detach();
+            }
             $product->delete();
         } catch (\Exception $exception) {
             DB::rollBack();
             throw $exception;
         }
         DB::commit();
-
     }
 
+
+    private function storeRelations(&$product, &$input, $method = 'attachRelation')
+    {
+        foreach ($input as $key => $value){
+            if(preg_match('/.*?_ids/',$key)){
+                $relation = preg_replace( '/_ids/', '', $key);
+                $this->productRepository->$method($product, $input[$key], $relation);
+                unset($input[$key]);
+            }
+        }
+    }
 }
