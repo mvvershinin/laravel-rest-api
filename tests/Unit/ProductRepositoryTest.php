@@ -13,7 +13,7 @@ class ProductRepositoryTest extends TestCase
     use CreatesApplication;
 
     /** @test */
-    public function test_create_a_product()
+    public function test_create()
     {
         $app = $this->createApplication();
         $data = ProductStructures::getProduct($app);
@@ -24,6 +24,6 @@ class ProductRepositoryTest extends TestCase
         $this->assertInstanceOf(Product::class, $product);
         $this->assertEquals($data['title'], $product->title);
         $this->assertEquals($data['eid'], $product->eid);
-
+        $this->assertEquals($data['price'], $product->price);
     }
 }

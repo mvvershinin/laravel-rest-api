@@ -17,7 +17,7 @@ class ProductsTest extends TestCase
     const API = '/api';
 
     /** @test */
-    public function test_products_get_list()
+    public function test_get_list()
     {
         $this->seed(CategorySeeder::class);
         $this->seed(ProductSeeder::class);
@@ -28,7 +28,7 @@ class ProductsTest extends TestCase
     }
 
     /** @test */
-    public function test_product_get_by_id()
+    public function test_get_by_id()
     {
         $this->withHeaders(['Accept' => 'application/json'])->get(
                 self::API.'/products/'.ProductStructures::getProductId()
@@ -36,7 +36,7 @@ class ProductsTest extends TestCase
     }
 
     /** @test */
-    public function test_product_get_by_id_fail()
+    public function test_get_by_id_fail()
     {
         $this->withHeaders(['Accept' => 'application/json'])->get(self::API.'/products/1a')->assertJsonStructure(
                 ProductStructures::PRODUCT_ERROR
@@ -44,7 +44,7 @@ class ProductsTest extends TestCase
     }
 
     /** @test */
-    public function test_product_create()
+    public function test_create()
     {
         $app = $this->CreateApplication();
         $this->withHeaders(['Accept' => 'application/json'])->post(
@@ -54,7 +54,7 @@ class ProductsTest extends TestCase
     }
 
     /** @test */
-    public function test_product_create_fail_required_values()
+    public function test_create_fail_required_values()
     {
         $app = $this->CreateApplication();
         foreach (ProductStructures::PRODUCT_KEYS as $key) {
@@ -69,7 +69,7 @@ class ProductsTest extends TestCase
     }
 
     /** @test */
-    public function test_product_create_fail_validation()
+    public function test_create_fail_validation()
     {
         $app = $this->CreateApplication();
         foreach (ProductStructures::PRODUCT_ERROR_VALUES as $key => $values) {
@@ -89,7 +89,7 @@ class ProductsTest extends TestCase
     }
 
     /** @test */
-    public function test_product_delete_by_id()
+    public function test_delete_by_id()
     {
         $this->withHeaders(['Accept' => 'application/json'])->delete(
                 self::API.'/products/'.ProductStructures::getProductId()
@@ -97,7 +97,7 @@ class ProductsTest extends TestCase
     }
 
     /** @test */
-    public function test_product_delete_by_id_fail()
+    public function test_delete_by_id_fail()
     {
         $this->withHeaders(['Accept' => 'application/json'])->delete(
             self::API.'/products/abc'
