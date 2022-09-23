@@ -77,4 +77,18 @@ class ProductsTest extends TestCase
             }
         }
     }
+
+    public function test_product_delete_by_id()
+    {
+        $this->withHeaders(['Accept' => 'application/json'])->delete(
+                self::API.'/products/'.ProductStructures::getProductId()
+            )->assertJsonStructure(['message'])->assertStatus(202);
+    }
+
+    public function test_product_delete_by_id_fail()
+    {
+        $this->withHeaders(['Accept' => 'application/json'])->delete(
+            self::API.'/products/abc'
+        )->assertJsonStructure(ProductStructures::PRODUCT_ERROR)->assertStatus(422);
+    }
 }
