@@ -12,7 +12,7 @@ class ProductRepositoryTest extends TestCase
 {
     use CreatesApplication;
 
-
+    /** @test  */
     public function test_create()
     {
         $app = $this->createApplication();
