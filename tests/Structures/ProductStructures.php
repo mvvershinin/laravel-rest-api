@@ -4,9 +4,12 @@ namespace Tests\Structures;
 
 use App\Repositories\CategoryRepository;
 use App\Repositories\ProductRepository;
+use Tests\CreatesApplication;
 
 class ProductStructures
 {
+    use CreatesApplication;
+
     const CATEGORIES_COUNT = 3;
 
     const PRODUCT_KEYS = [
@@ -52,9 +55,9 @@ class ProductStructures
         'categories_ids' => ['not array', ['a', 'b', 'c']],
     ];
 
-    public static function getProduct()
+    public static function getProduct(&$app)
     {
-        $categoryRepository = \App::make(CategoryRepository::class);
+        $categoryRepository = $app->make(CategoryRepository::class);
         $categories = $categoryRepository->getInstance()::factory()->create();
 
         return [

@@ -5,16 +5,18 @@ namespace Tests\Feature;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\CreatesApplication;
 use Tests\Structures\ProductStructures;
 use Tests\TestCase;
 
 
 class ProductsTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesApplication;
 
     const API = '/api';
 
+    /** @test */
     public function test_products_get_list()
     {
         $this->seed(CategorySeeder::class);
@@ -25,6 +27,7 @@ class ProductsTest extends TestCase
             )->assertStatus(200);
     }
 
+    /** @test */
     public function test_product_get_by_id()
     {
         $this->withHeaders(['Accept' => 'application/json'])->get(
@@ -32,6 +35,7 @@ class ProductsTest extends TestCase
             )->assertJsonStructure(ProductStructures::PRODUCT)->assertStatus(200);
     }
 
+    /** @test */
     public function test_product_get_by_id_fail()
     {
         $this->withHeaders(['Accept' => 'application/json'])->get(self::API.'/products/1a')->assertJsonStructure(
@@ -39,18 +43,22 @@ class ProductsTest extends TestCase
             )->assertStatus(422);
     }
 
+    /** @test */
     public function test_product_create()
     {
+        $app = $this->CreateApplication();
         $this->withHeaders(['Accept' => 'application/json'])->post(
                 self::API.'/products',
-                ProductStructures::getProduct()
+                ProductStructures::getProduct($app)
             )->assertJsonStructure(ProductStructures::PRODUCTS_STORED)->assertStatus(201);
     }
 
+    /** @test */
     public function test_product_create_fail_required_values()
     {
+        $app = $this->CreateApplication();
         foreach (ProductStructures::PRODUCT_KEYS as $key) {
-            $invalid_product = ProductStructures::getProduct();
+            $invalid_product = ProductStructures::getProduct($app);
             unset($invalid_product[$key]);
 
             $this->withHeaders(['Accept' => 'application/json'])->post(
@@ -60,11 +68,13 @@ class ProductsTest extends TestCase
         }
     }
 
+    /** @test */
     public function test_product_create_fail_validation()
     {
+        $app = $this->CreateApplication();
         foreach (ProductStructures::PRODUCT_ERROR_VALUES as $key => $values) {
             foreach ($values as $value) {
-                $invalid_product = ProductStructures::getProduct();
+                $invalid_product = ProductStructures::getProduct($app);
 
                 $invalid_product[$key] = $value;
 
@@ -78,6 +88,7 @@ class ProductsTest extends TestCase
         }
     }
 
+    /** @test */
     public function test_product_delete_by_id()
     {
         $this->withHeaders(['Accept' => 'application/json'])->delete(
@@ -85,6 +96,7 @@ class ProductsTest extends TestCase
             )->assertJsonStructure(['message'])->assertStatus(202);
     }
 
+    /** @test */
     public function test_product_delete_by_id_fail()
     {
         $this->withHeaders(['Accept' => 'application/json'])->delete(
